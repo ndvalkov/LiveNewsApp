@@ -55,8 +55,8 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideArticlesRepository(newsApi: NewsApi): ArticlesRepository {
-        return ArticlesRepository(newsApi)
+    fun provideArticlesRepository(newsApi: NewsApi, articleDao: ArticleDao): ArticlesRepository {
+        return ArticlesRepository(newsApi, articleDao)
     }
 
     @Singleton

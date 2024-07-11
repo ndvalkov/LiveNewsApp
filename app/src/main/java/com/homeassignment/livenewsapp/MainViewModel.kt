@@ -2,6 +2,7 @@ package com.homeassignment.livenewsapp
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.cachedIn
 import com.homeassignment.livenewsapp.data.DataStorage
 import com.homeassignment.livenewsapp.data.db.Article
 import com.homeassignment.livenewsapp.data.db.ArticleEntity
@@ -32,12 +33,16 @@ class MainViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<UiState>(UiState.Success("Initial"))
     val uiState: StateFlow<UiState> = _uiState
+//
+//    private val _allArticles: MutableStateFlow<List<Article>> = MutableStateFlow(emptyList())
+//    val allArticles: StateFlow<List<Article>> = _allArticles.asStateFlow()
 
-    private val _allArticles: MutableStateFlow<List<Article>> = MutableStateFlow(emptyList())
-    val allArticles: StateFlow<List<Article>> = _allArticles.asStateFlow()
+    val articles = articlesRepository
+        .getAllArticlesFromDb()
+        .cachedIn(viewModelScope)
 
     init {
-        loadArticlesFromDb()
+        // loadArticlesFromDb()
     }
 
     fun updateArticles() {
@@ -45,10 +50,10 @@ class MainViewModel @Inject constructor(
             try {
                 val lastUpdateTime = dataStorage.getLastUpdate()
                 val currentTime = System.currentTimeMillis()
-                if (currentTime - lastUpdateTime > TimeUnit.HOURS.toMillis(1)) {
+                if (currentTime - lastUpdateTime > TimeUnit.HOURS.toMillis(1)) { // TimeUnit.HOURS.toMillis(1)
                     _uiState.value = UiState.Update
 
-                    val newsResponse = articlesRepository.getTopHeadlines(BuildConfig.API_KEY)
+                    val newsResponse = articlesRepository.fetchTopHeadlines(BuildConfig.API_KEY)
                     if (newsResponse == null || newsResponse.status != "ok") {
                         val errorMessage = newsResponse?.message ?: "Failed to fetch articles"
                         _uiState.value = UiState.Error(errorMessage)
@@ -62,7 +67,7 @@ class MainViewModel @Inject constructor(
                     roomRepository.deleteAllArticles()
                     roomRepository.insertAllArticles(articleEntities)
 
-                    _allArticles.value = articles
+                    // _allArticles.value = articles
 
                     _uiState.value = UiState.Success("Successfully updated")
                 } else {
@@ -74,11 +79,11 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun loadArticlesFromDb() {
-        viewModelScope.launch {
-            val entities = roomRepository.getAllArticles()
-            val articles = entities.map { it.article }
-            _allArticles.value = articles
-        }
-    }
+//    private fun loadArticlesFromDb() {
+//        viewModelScope.launch {
+//            val entities = roomRepository.getAllArticles()
+//            val articles = entities.map { it.article }
+//            _allArticles.value = articles
+//        }
+//    }
 }

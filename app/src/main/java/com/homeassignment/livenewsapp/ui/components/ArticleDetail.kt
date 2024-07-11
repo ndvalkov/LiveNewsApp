@@ -3,6 +3,7 @@ package com.homeassignment.livenewsapp.ui.components
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,14 +13,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 @Composable
-fun ArticleDetail(sourceUrl: String, title: String?) {
+fun ArticleDetail(sourceUrl: String) {
     Box(modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center) {
 
-        val lastUrl by remember { mutableStateOf(sourceUrl) }
+        val lastUrl by remember(sourceUrl) { mutableStateOf(sourceUrl) }
         var isLoading by remember { mutableStateOf(true) }
 
-        val webViewClient = remember {
+        val webViewClient = remember(lastUrl) {
             CustomWebViewClient().apply {
                 onPageFinishedCallback = {
                     isLoading = false
@@ -32,7 +33,7 @@ fun ArticleDetail(sourceUrl: String, title: String?) {
         if(isLoading) {
             CircularProgressIndicator()
         }
-        
-        // Text(text = "Article id: $title")
+
+        // Text(text = "Article url: $sourceUrl")
     }
 }

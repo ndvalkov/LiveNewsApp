@@ -19,6 +19,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.homeassignment.livenewsapp.ui.components.AppBottomNavigation
 import com.homeassignment.livenewsapp.ui.components.AppRoute
 import com.homeassignment.livenewsapp.ui.favorites.FavoritesScreen
@@ -42,7 +43,8 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val navController = rememberNavController()
 
-                    val allArticles by viewModel.allArticles.collectAsStateWithLifecycle()
+                    val articles = viewModel.articles.collectAsLazyPagingItems()
+                    // val allArticles by viewModel.allArticles.collectAsStateWithLifecycle()
                     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
                     LaunchedEffect(Unit) {
@@ -67,7 +69,7 @@ class MainActivity : ComponentActivity() {
                                     startDestination = AppRoute.HOME.route,
                                     modifier = Modifier.padding(paddingValues)
                                 ) {
-                                    composable(AppRoute.HOME.route) { HomeScreen(allArticles) }
+                                    composable(AppRoute.HOME.route) { HomeScreen(articles) }
                                     composable(AppRoute.FAVORITE.route) { FavoritesScreen() }
                                     composable(AppRoute.SORT_BY.route) { }
                                     composable(AppRoute.SEARCH.route) { }

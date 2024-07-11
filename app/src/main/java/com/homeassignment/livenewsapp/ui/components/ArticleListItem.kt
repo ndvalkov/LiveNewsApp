@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -40,9 +41,9 @@ fun ArticleListItem(article: Article,
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onItemClick(article) }
-            .padding(8.dp)
+            .padding(4.dp)
             .background(Color.White, RoundedCornerShape(8.dp))
-            .padding(16.dp)
+            .padding(4.dp)
     ) {
         article.urlToImage?.let { imageUrl ->
             AsyncImage(
@@ -54,14 +55,14 @@ fun ArticleListItem(article: Article,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .size(128.dp)
                     .clip(RoundedCornerShape(8.dp))
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
         Text(
             text = article.title,
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.titleMedium,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )

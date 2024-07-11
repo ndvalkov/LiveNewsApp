@@ -104,6 +104,11 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
 
+    val pagingVersion = "3.3.0"
+
+    implementation("androidx.paging:paging-runtime-ktx:$pagingVersion")
+    implementation("androidx.paging:paging-compose:$pagingVersion")
+
     // implementation("com.google.accompanist:accompanist-webview:0.35.0-alpha")
 
     // Adaptive

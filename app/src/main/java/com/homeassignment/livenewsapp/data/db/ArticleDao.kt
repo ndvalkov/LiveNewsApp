@@ -1,5 +1,6 @@
 package com.homeassignment.livenewsapp.data.db
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -16,4 +17,7 @@ interface ArticleDao {
 
     @Query("DELETE FROM articles")
     suspend fun deleteAllArticles()
+
+    @Query("SELECT * FROM articles")
+    fun getPagingSource(): PagingSource<Int, ArticleEntity>
 }
