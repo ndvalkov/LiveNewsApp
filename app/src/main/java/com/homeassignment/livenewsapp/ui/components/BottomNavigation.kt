@@ -69,7 +69,6 @@ fun AppBottomNavigation(
     navController: NavHostController,
     content: @Composable (PaddingValues) -> Unit
 ) {
-
     val backStackEntry = navController.currentBackStackEntryAsState()
 
     Scaffold(
