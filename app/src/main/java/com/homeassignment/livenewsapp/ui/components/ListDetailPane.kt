@@ -57,7 +57,7 @@ fun ArticlesList(articles: List<Article>, onArticleClick: (Article) -> Unit) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        items(articles) { article ->
+        items(articles, key = {it.title}) { article ->
 
             ArticleListItem(
                 article = article,
@@ -71,7 +71,7 @@ fun ArticlesList(articles: List<Article>, onArticleClick: (Article) -> Unit) {
 
 @Composable
 fun ArticleDetails(article: Article) {
-    ArticleDetail(sourceUrl = article.url)
+    ArticleDetail(sourceUrl = article.url, title = article.hashCode().toString())
 }
 
 @Parcelize

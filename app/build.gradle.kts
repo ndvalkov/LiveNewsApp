@@ -100,6 +100,9 @@ dependencies {
     // Coil
     implementation("io.coil-kt:coil-compose:2.6.0")
 
+    // Data Store
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+
     // Adaptive
     implementation("androidx.compose.material3.adaptive:adaptive:1.0.0-alpha12")
     implementation("androidx.compose.material3.adaptive:adaptive-layout:1.0.0-alpha12")

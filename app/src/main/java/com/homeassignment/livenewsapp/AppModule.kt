@@ -2,8 +2,13 @@ package com.homeassignment.livenewsapp
 
 import android.content.Context
 import androidx.room.Room
+import com.homeassignment.livenewsapp.data.DataStorage
 import com.homeassignment.livenewsapp.data.db.AppDatabase
+import com.homeassignment.livenewsapp.data.db.ArticleDao
+import com.homeassignment.livenewsapp.data.db.FavoriteArticleDao
 import com.homeassignment.livenewsapp.data.remote.NewsApi
+import com.homeassignment.livenewsapp.data.repository.ArticlesRepository
+import com.homeassignment.livenewsapp.data.repository.RoomRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,7 +42,6 @@ object AppModule {
     @Singleton
     fun provideFavoritesDao(db: AppDatabase) = db.favoritesDao()
 
-
     @Provides
     @Singleton
     fun provideRetrofit(): Retrofit = Retrofit.Builder()
@@ -48,4 +52,24 @@ object AppModule {
     @Provides
     @Singleton
     fun provideNewsApi(retrofit: Retrofit): NewsApi = retrofit.create(NewsApi::class.java)
+
+    @Singleton
+    @Provides
+    fun provideArticlesRepository(newsApi: NewsApi): ArticlesRepository {
+        return ArticlesRepository(newsApi)
+    }
+
+    @Singleton
+    @Provides
+    fun provideRoomRepository(
+        articleDao: ArticleDao,
+        favoriteArticleDao: FavoriteArticleDao
+    ): RoomRepository {
+        return RoomRepository(articleDao, favoriteArticleDao)
+    }
+
+    @Provides
+    @Singleton
+    fun providesDataStorage(@ApplicationContext context: Context): DataStorage =
+        DataStorage(context)
 }

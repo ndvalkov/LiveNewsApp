@@ -1,0 +1,68 @@
+package com.homeassignment.livenewsapp
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.homeassignment.livenewsapp.data.DataStorage
+import com.homeassignment.livenewsapp.data.db.Article
+import com.homeassignment.livenewsapp.data.db.ArticleEntity
+import com.homeassignment.livenewsapp.data.mappers.toArticle
+import com.homeassignment.livenewsapp.data.repository.ArticlesRepository
+import com.homeassignment.livenewsapp.data.repository.RoomRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+
+sealed class UiState {
+    data object Loading : UiState()
+    data object Update : UiState()
+    data class Success(val data: String) : UiState()
+    data class Error(val message: String) : UiState()
+}
+
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    private val articlesRepository: ArticlesRepository,
+    private val roomRepository: RoomRepository,
+    private val dataStorage: DataStorage
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow<UiState>(UiState.Update)
+    val uiState: StateFlow<UiState> = _uiState
+
+    private val _allArticles: MutableStateFlow<List<Article>> = MutableStateFlow(emptyList())
+    val allArticles: StateFlow<List<Article>> = _allArticles.asStateFlow()
+
+    fun updateArticles() {
+        viewModelScope.launch {
+            _uiState.value = UiState.Update
+            try {
+                val lastUpdateTime = dataStorage.getLastUpdate()
+                val currentTime = System.currentTimeMillis()
+                if (currentTime - lastUpdateTime > TimeUnit.HOURS.toMillis(1)) {
+                    val newsResponse = articlesRepository.getTopHeadlines(BuildConfig.API_KEY)
+                    if (newsResponse == null || newsResponse.status != "ok") {
+                        val errorMessage = newsResponse?.message ?: "Failed to fetch articles"
+                        _uiState.value = UiState.Error(errorMessage)
+                        return@launch
+                    }
+
+                    dataStorage.saveLastUpdate(currentTime)
+
+                    val articles = newsResponse.articles.map { it.toArticle() }
+                    val articleEntities = articles.map { ArticleEntity(article = it) }
+                    roomRepository.insertAllArticles(articleEntities)
+
+                    _uiState.value = UiState.Success("Successfully updated")
+                } else {
+                    _uiState.value = UiState.Success("No updates needed")
+                }
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error(e.message ?: "An unknown error occurred")
+            }
+        }
+    }
+}

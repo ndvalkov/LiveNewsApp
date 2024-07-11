@@ -1,24 +1,15 @@
 package com.homeassignment.livenewsapp.ui.home
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
-import androidx.compose.material3.adaptive.layout.AnimatedPane
-import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
-import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
-import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import com.homeassignment.livenewsapp.data.db.Article
 import com.homeassignment.livenewsapp.ui.components.ListDetailPane
 
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun HomeScreen() {
+fun HomeScreen(allArticles: List<Article>) {
     Surface(modifier = Modifier.fillMaxSize()) {
         ListDetailPane(articles = dummyArticles)
     }
