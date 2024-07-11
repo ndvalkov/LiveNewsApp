@@ -1,12 +1,15 @@
 package com.homeassignment.livenewsapp.ui.components
 
-import android.view.ViewGroup
-import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 
 @Composable
@@ -18,14 +21,17 @@ fun WebView(
         factory = { context ->
             WebView(context).apply {
                 this.webViewClient = webViewClient
+                this.settings.useWideViewPort = true
             }
         },
         update = { webView ->
             webView.loadUrl(url)
-        }
+        },
+        modifier = Modifier.padding(8.dp) // bug fix flicker
     )
 }
 
+@Stable
 class CustomWebViewClient() : WebViewClient() {
 
     var onPageFinishedCallback: (() -> Unit)? = null

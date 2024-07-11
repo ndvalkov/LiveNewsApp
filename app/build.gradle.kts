@@ -103,6 +103,9 @@ dependencies {
     // Data Store
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
+
+    // implementation("com.google.accompanist:accompanist-webview:0.35.0-alpha")
+
     // Adaptive
     implementation("androidx.compose.material3.adaptive:adaptive:1.0.0-alpha12")
     implementation("androidx.compose.material3.adaptive:adaptive-layout:1.0.0-alpha12")

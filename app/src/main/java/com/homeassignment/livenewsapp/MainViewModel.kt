@@ -30,19 +30,24 @@ class MainViewModel @Inject constructor(
     private val dataStorage: DataStorage
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<UiState>(UiState.Update)
+    private val _uiState = MutableStateFlow<UiState>(UiState.Success("Initial"))
     val uiState: StateFlow<UiState> = _uiState
 
     private val _allArticles: MutableStateFlow<List<Article>> = MutableStateFlow(emptyList())
     val allArticles: StateFlow<List<Article>> = _allArticles.asStateFlow()
 
+    init {
+        loadArticlesFromDb()
+    }
+
     fun updateArticles() {
         viewModelScope.launch {
-            _uiState.value = UiState.Update
             try {
                 val lastUpdateTime = dataStorage.getLastUpdate()
                 val currentTime = System.currentTimeMillis()
                 if (currentTime - lastUpdateTime > TimeUnit.HOURS.toMillis(1)) {
+                    _uiState.value = UiState.Update
+
                     val newsResponse = articlesRepository.getTopHeadlines(BuildConfig.API_KEY)
                     if (newsResponse == null || newsResponse.status != "ok") {
                         val errorMessage = newsResponse?.message ?: "Failed to fetch articles"
@@ -54,7 +59,10 @@ class MainViewModel @Inject constructor(
 
                     val articles = newsResponse.articles.map { it.toArticle() }
                     val articleEntities = articles.map { ArticleEntity(article = it) }
+                    roomRepository.deleteAllArticles()
                     roomRepository.insertAllArticles(articleEntities)
+
+                    _allArticles.value = articles
 
                     _uiState.value = UiState.Success("Successfully updated")
                 } else {
@@ -63,6 +71,14 @@ class MainViewModel @Inject constructor(
             } catch (e: Exception) {
                 _uiState.value = UiState.Error(e.message ?: "An unknown error occurred")
             }
+        }
+    }
+
+    private fun loadArticlesFromDb() {
+        viewModelScope.launch {
+            val entities = roomRepository.getAllArticles()
+            val articles = entities.map { it.article }
+            _allArticles.value = articles
         }
     }
 }
