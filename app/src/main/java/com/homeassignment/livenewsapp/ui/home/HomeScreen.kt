@@ -13,10 +13,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.homeassignment.livenewsapp.data.db.ArticleEntity
+import com.homeassignment.livenewsapp.data.db.FavoriteArticleEntity
 import com.homeassignment.livenewsapp.ui.components.ListDetailPane
 
 @Composable
-fun HomeScreen(allArticles: LazyPagingItems<ArticleEntity>) {
+fun HomeScreen(
+    allArticles: LazyPagingItems<ArticleEntity>,
+    favorites: List<FavoriteArticleEntity>,
+    onToggleFavorite: (String) -> Unit
+) {
     Surface(modifier = Modifier.fillMaxSize()) {
         when {
             allArticles.loadState.refresh is LoadState.Loading -> {
@@ -24,19 +29,26 @@ fun HomeScreen(allArticles: LazyPagingItems<ArticleEntity>) {
                     CircularProgressIndicator()
                 }
             }
+
             allArticles.loadState.refresh is LoadState.Error -> {
                 val error = (allArticles.loadState.refresh as LoadState.Error).error
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Error: ${error.localizedMessage}")
                 }
             }
+
             allArticles.itemCount == 0 -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("No articles available")
                 }
             }
+
             else -> {
-                ListDetailPane(articles = allArticles)
+                ListDetailPane(
+                    articles = allArticles,
+                    favorites = favorites,
+                    onToggleFavorite = onToggleFavorite
+                )
             }
         }
 

@@ -35,7 +35,7 @@ import com.homeassignment.livenewsapp.data.db.Article
 @Composable
 fun ArticleListItem(article: Article,
                     onItemClick: (Article) -> Unit,
-                    onFavoriteClick: (Article) -> Unit,
+                    onFavoriteClick: (String) -> Unit,
                     isFavorite: Boolean) {
     Column(
         modifier = Modifier
@@ -84,7 +84,7 @@ fun ArticleListItem(article: Article,
                     color = Color.Gray
                 )
             }
-            IconButton(onClick = { onFavoriteClick(article) }) {
+            IconButton(onClick = { onFavoriteClick(article.title) }) {
                 Icon(
                     imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.Favorite,
                     contentDescription = null,

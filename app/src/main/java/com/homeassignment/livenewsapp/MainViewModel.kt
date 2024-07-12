@@ -3,13 +3,16 @@ package com.homeassignment.livenewsapp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
+import androidx.paging.compose.LazyPagingItems
 import com.homeassignment.livenewsapp.data.DataStorage
-import com.homeassignment.livenewsapp.data.db.Article
 import com.homeassignment.livenewsapp.data.db.ArticleEntity
+import com.homeassignment.livenewsapp.data.db.FavoriteArticleEntity
 import com.homeassignment.livenewsapp.data.mappers.toArticle
 import com.homeassignment.livenewsapp.data.repository.ArticlesRepository
 import com.homeassignment.livenewsapp.data.repository.RoomRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,16 +36,20 @@ class MainViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<UiState>(UiState.Success("Initial"))
     val uiState: StateFlow<UiState> = _uiState
-//
-//    private val _allArticles: MutableStateFlow<List<Article>> = MutableStateFlow(emptyList())
-//    val allArticles: StateFlow<List<Article>> = _allArticles.asStateFlow()
+
+    private val _favorites: MutableStateFlow<List<FavoriteArticleEntity>> = MutableStateFlow(emptyList())
+    val favorites: StateFlow<List<FavoriteArticleEntity>> = _favorites.asStateFlow()
 
     val articles = articlesRepository
         .getAllArticlesFromDb()
         .cachedIn(viewModelScope)
 
     init {
-        // loadArticlesFromDb()
+        getFavoritesFromDb()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
     }
 
     fun updateArticles() {
@@ -50,7 +57,7 @@ class MainViewModel @Inject constructor(
             try {
                 val lastUpdateTime = dataStorage.getLastUpdate()
                 val currentTime = System.currentTimeMillis()
-                if (currentTime - lastUpdateTime > TimeUnit.HOURS.toMillis(1)) { // TimeUnit.HOURS.toMillis(1)
+                if (currentTime - lastUpdateTime > TimeUnit.HOURS.toMillis(1)) {
                     _uiState.value = UiState.Update
 
                     val newsResponse = articlesRepository.fetchTopHeadlines(BuildConfig.API_KEY)
@@ -79,11 +86,55 @@ class MainViewModel @Inject constructor(
         }
     }
 
-//    private fun loadArticlesFromDb() {
-//        viewModelScope.launch {
-//            val entities = roomRepository.getAllArticles()
-//            val articles = entities.map { it.article }
-//            _allArticles.value = articles
+    fun toggleFavorite(title: String, articles: LazyPagingItems<ArticleEntity>) {
+        val toggled = findArticleByTitle(title, articles)
+        toggled?.let { articleEntity ->
+            val currentFavorites = _favorites.value.toMutableList()
+            val element = currentFavorites.find { it.article.title == title }
+            if (element != null) {
+                currentFavorites.remove(element)
+                viewModelScope.launch(Dispatchers.IO) {
+                    roomRepository.deleteFavorite(element)
+                }
+            } else {
+                val favoriteArticleEntity = FavoriteArticleEntity(article = articleEntity.article)
+                currentFavorites.add(favoriteArticleEntity)
+                viewModelScope.launch(Dispatchers.IO) {
+                    roomRepository.insertFavorite(favoriteArticleEntity)
+                }
+            }
+
+            _favorites.value = currentFavorites
+        }
+    }
+
+    // Retrieve the entity from the currently collected paged items
+    private fun findArticleByTitle(title: String, articles: LazyPagingItems<ArticleEntity>): ArticleEntity? {
+        for (index in 0 until articles.itemCount) {
+            val articleEntity = articles[index]
+            if (articleEntity?.article?.title == title) {
+                return articleEntity
+            }
+        }
+        return null
+    }
+
+    private fun getFavoritesFromDb() {
+        viewModelScope.launch {
+            val favorites = roomRepository.getAllFavoriteArticles()
+            _favorites.value = favorites
+        }
+    }
+
+//    fun saveFavorites() {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            try {
+//                roomRepository.deleteAllFavorites()
+//                roomRepository.insertAllFavorites(favorites = _favorites.value)
+//                println("Insert count: ${_favorites.value.size}")
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//            }
 //        }
 //    }
 }

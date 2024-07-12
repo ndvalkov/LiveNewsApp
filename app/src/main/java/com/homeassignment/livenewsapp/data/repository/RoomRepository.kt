@@ -23,12 +23,20 @@ class RoomRepository @Inject constructor(
         articleDao.deleteAllArticles()
     }
 
-    suspend fun insertFavoriteArticle(favoriteArticle: FavoriteArticleEntity) {
-        favoriteArticleDao.insert(favoriteArticle)
+    suspend fun insertFavorite(favorite: FavoriteArticleEntity) {
+        favoriteArticleDao.insert(favorite)
     }
 
-    suspend fun deleteFavoriteArticle(favoriteArticle: FavoriteArticleEntity) {
-        favoriteArticleDao.delete(favoriteArticle)
+    suspend fun deleteFavorite(favorite: FavoriteArticleEntity) {
+        favoriteArticleDao.delete(favorite)
+    }
+
+    suspend fun insertAllFavorites(favorites: List<FavoriteArticleEntity>) {
+        favoriteArticleDao.insertAll(favorites)
+    }
+
+    suspend fun deleteAllFavorites() {
+        favoriteArticleDao.deleteAll()
     }
 
     suspend fun getAllFavoriteArticles(): List<FavoriteArticleEntity> {

@@ -8,11 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
@@ -28,11 +24,16 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemKey
 import com.homeassignment.livenewsapp.data.db.Article
 import com.homeassignment.livenewsapp.data.db.ArticleEntity
+import com.homeassignment.livenewsapp.data.db.FavoriteArticleEntity
 import kotlinx.parcelize.Parcelize
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun ListDetailPane(articles: LazyPagingItems<ArticleEntity>) {
+fun ListDetailPane(
+    articles: LazyPagingItems<ArticleEntity>,
+    favorites: List<FavoriteArticleEntity>,
+    onToggleFavorite: (String) -> Unit
+) {
 
     val navigator = rememberListDetailPaneScaffoldNavigator<Article>()
 
@@ -47,9 +48,11 @@ fun ListDetailPane(articles: LazyPagingItems<ArticleEntity>) {
             AnimatedPane {
                 ArticlesList(
                     articles = articles,
+                    favorites = favorites,
                     onArticleClick = { item ->
                         navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, item)
                     },
+                    onToggleFavorite = onToggleFavorite
                 )
             }
         },
@@ -64,8 +67,13 @@ fun ListDetailPane(articles: LazyPagingItems<ArticleEntity>) {
 }
 
 @Composable
-fun ArticlesList(articles: LazyPagingItems<ArticleEntity>,
-                 onArticleClick: (Article) -> Unit) {
+fun ArticlesList(
+    articles: LazyPagingItems<ArticleEntity>,
+    favorites: List<FavoriteArticleEntity>,
+    onArticleClick: (Article) -> Unit,
+    onToggleFavorite: (String) -> Unit
+) {
+    val favoriteTitles = favorites.map { it.article.title }.toSet()
 
     Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -74,14 +82,16 @@ fun ArticlesList(articles: LazyPagingItems<ArticleEntity>,
                 .padding(4.dp),
             contentPadding = PaddingValues(2.dp)
         ) {
-            items(count = articles.itemCount) { index ->
+            items(
+                count = articles.itemCount,
+                key = articles.itemKey { it.id }) { index ->
                 val item = articles[index]
                 item?.let {
                     ArticleListItem(
                         article = it.article,
+                        isFavorite = favoriteTitles.contains(it.article.title),
                         onItemClick = onArticleClick,
-                        onFavoriteClick = {  },
-                        isFavorite = true
+                        onFavoriteClick = onToggleFavorite,
                     )
                 }
             }
@@ -99,7 +109,6 @@ fun ArticlesList(articles: LazyPagingItems<ArticleEntity>,
             }
         }
     }
-
 
 
     // Crashes, duplicates, when scroll back to top (possibly unstable with pagination)

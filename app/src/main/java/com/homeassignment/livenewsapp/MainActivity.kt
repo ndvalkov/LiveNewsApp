@@ -11,14 +11,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -28,6 +25,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.homeassignment.livenewsapp.ui.components.AppBottomNavigation
 import com.homeassignment.livenewsapp.ui.components.AppRoute
+import com.homeassignment.livenewsapp.ui.components.OnLifecycleEvent
 import com.homeassignment.livenewsapp.ui.favorites.FavoritesScreen
 import com.homeassignment.livenewsapp.ui.home.HomeScreen
 import com.homeassignment.livenewsapp.ui.search.SearchScreen
@@ -45,6 +43,17 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             LiveNewsAppTheme {
+//                OnLifecycleEvent { owner, event ->
+//                    when (event) {
+//                        Lifecycle.Event.ON_PAUSE -> {
+//                            println("ON_PAUSE")
+//                            viewModel.saveFavorites()
+//                        }
+//
+//                        else -> {}
+//                    }
+//                }
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -52,7 +61,7 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
 
                     val articles = viewModel.articles.collectAsLazyPagingItems()
-                    // val allArticles by viewModel.allArticles.collectAsStateWithLifecycle()
+                    val favorites by viewModel.favorites.collectAsStateWithLifecycle()
                     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
                     LaunchedEffect(Unit) {
@@ -82,7 +91,11 @@ class MainActivity : ComponentActivity() {
                                     startDestination = AppRoute.HOME.route,
                                     modifier = Modifier.padding(paddingValues)
                                 ) {
-                                    composable(AppRoute.HOME.route) { HomeScreen(articles) }
+                                    composable(AppRoute.HOME.route) {
+                                        HomeScreen(articles, favorites) {
+                                            viewModel.toggleFavorite(it, articles)
+                                        }
+                                    }
                                     composable(AppRoute.FAVORITE.route) { FavoritesScreen() }
                                     composable(AppRoute.SORT_BY.route) {
                                         SortScreen(
