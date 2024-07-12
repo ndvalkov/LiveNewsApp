@@ -8,12 +8,12 @@ import com.homeassignment.livenewsapp.data.DataStorage
 import com.homeassignment.livenewsapp.data.db.ArticleEntity
 import com.homeassignment.livenewsapp.data.db.FavoriteArticleEntity
 import com.homeassignment.livenewsapp.data.mappers.toArticle
+import com.homeassignment.livenewsapp.data.remote.NewsResponseDto
 import com.homeassignment.livenewsapp.data.repository.ArticlesRepository
 import com.homeassignment.livenewsapp.data.repository.RoomRepository
+import com.homeassignment.livenewsapp.ui.search.SearchAction
 import com.homeassignment.livenewsapp.ui.sort.SortAction
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -135,6 +135,46 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             val favorites = roomRepository.getAllFavoriteArticles()
             _favorites.value = favorites
+        }
+    }
+
+    fun onSearchArticles(searchAction: SearchAction, query: String) {
+        if (query.trim().isEmpty()) {
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                val newsResponse: NewsResponseDto? = when (searchAction) {
+                    SearchAction.EXACT_MATCH -> {
+                        articlesRepository.searchTopHeadlines(query, BuildConfig.API_KEY)
+                    }
+
+                    SearchAction.BY_RELEVANCY -> {
+                        articlesRepository.searchTopHeadlinesWithRelevancy(
+                            query,
+                            BuildConfig.API_KEY
+                        )
+                    }
+                }
+
+                if (newsResponse == null || newsResponse.status != "ok") {
+                    val errorMessage = newsResponse?.message ?: "Failed to search articles"
+                    _uiState.value = UiState.Error(errorMessage)
+                    return@launch
+                }
+
+                val articles = newsResponse.articles.map { it.toArticle() }
+                val articleEntities = articles.map { ArticleEntity(article = it) }
+                roomRepository.deleteAllArticles()
+                roomRepository.insertAllArticles(articleEntities)
+
+                // _allArticles.value = articles
+
+                _uiState.value = UiState.Success("Successfully searched")
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error(e.message ?: "An unknown error occurred")
+            }
         }
     }
 

@@ -118,7 +118,7 @@ class MainActivity : ComponentActivity() {
                                                 navigateToHome(navController)
                                             },
                                             onSearch = { searchAction, query ->
-
+                                                viewModel.onSearchArticles(searchAction, query)
                                             }
                                         )
                                     }

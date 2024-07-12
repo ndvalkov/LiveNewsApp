@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 
 enum class SearchAction {
     EXACT_MATCH,
-    BY_RELEVANCE
+    BY_RELEVANCY
 }
 
 @Composable
@@ -69,8 +69,8 @@ fun SearchScreen(
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(
-                    selected = selectedAction == SearchAction.BY_RELEVANCE,
-                    onClick = { selectedAction = SearchAction.BY_RELEVANCE }
+                    selected = selectedAction == SearchAction.BY_RELEVANCY,
+                    onClick = { selectedAction = SearchAction.BY_RELEVANCY }
                 )
                 Text("By Relevance")
             }
