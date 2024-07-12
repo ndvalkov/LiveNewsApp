@@ -15,7 +15,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -25,7 +24,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.homeassignment.livenewsapp.ui.components.AppBottomNavigation
 import com.homeassignment.livenewsapp.ui.components.AppRoute
-import com.homeassignment.livenewsapp.ui.components.OnLifecycleEvent
 import com.homeassignment.livenewsapp.ui.favorites.FavoritesScreen
 import com.homeassignment.livenewsapp.ui.home.HomeScreen
 import com.homeassignment.livenewsapp.ui.search.SearchScreen
@@ -60,7 +58,14 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val navController = rememberNavController()
 
-                    val articles = viewModel.articles.collectAsLazyPagingItems()
+                    val sorted by viewModel.sorted.collectAsStateWithLifecycle()
+                    val articlesFlow = if (sorted) {
+                        viewModel.sortedArticles // by date
+                    } else {
+                        viewModel.articles // by popularity
+                    }
+
+                    val articles = articlesFlow.collectAsLazyPagingItems()
                     val favorites by viewModel.favorites.collectAsStateWithLifecycle()
                     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -96,14 +101,14 @@ class MainActivity : ComponentActivity() {
                                             viewModel.toggleFavorite(it, articles)
                                         }
                                     }
-                                    composable(AppRoute.FAVORITE.route) { FavoritesScreen() }
+                                    composable(AppRoute.FAVORITE.route) { FavoritesScreen(favorites) }
                                     composable(AppRoute.SORT_BY.route) {
                                         SortScreen(
                                             onDismiss = {
                                                 navigateToHome(navController)
                                             },
                                             onSort = { sortAction ->
-
+                                                viewModel.onSortArticles(sortAction)
                                             }
                                         )
                                     }

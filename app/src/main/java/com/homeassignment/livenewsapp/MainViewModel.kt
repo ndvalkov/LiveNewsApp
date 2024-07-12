@@ -10,6 +10,7 @@ import com.homeassignment.livenewsapp.data.db.FavoriteArticleEntity
 import com.homeassignment.livenewsapp.data.mappers.toArticle
 import com.homeassignment.livenewsapp.data.repository.ArticlesRepository
 import com.homeassignment.livenewsapp.data.repository.RoomRepository
+import com.homeassignment.livenewsapp.ui.sort.SortAction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -40,8 +41,15 @@ class MainViewModel @Inject constructor(
     private val _favorites: MutableStateFlow<List<FavoriteArticleEntity>> = MutableStateFlow(emptyList())
     val favorites: StateFlow<List<FavoriteArticleEntity>> = _favorites.asStateFlow()
 
+    private val _sorted = MutableStateFlow(false)
+    val sorted: StateFlow<Boolean> = _sorted.asStateFlow()
+
     val articles = articlesRepository
         .getAllArticlesFromDb()
+        .cachedIn(viewModelScope)
+
+    val sortedArticles = articlesRepository
+        .getSortedArticlesFromDb()
         .cachedIn(viewModelScope)
 
     init {
@@ -93,19 +101,23 @@ class MainViewModel @Inject constructor(
             val element = currentFavorites.find { it.article.title == title }
             if (element != null) {
                 currentFavorites.remove(element)
-                viewModelScope.launch(Dispatchers.IO) {
+                viewModelScope.launch {
                     roomRepository.deleteFavorite(element)
                 }
             } else {
                 val favoriteArticleEntity = FavoriteArticleEntity(article = articleEntity.article)
                 currentFavorites.add(favoriteArticleEntity)
-                viewModelScope.launch(Dispatchers.IO) {
+                viewModelScope.launch {
                     roomRepository.insertFavorite(favoriteArticleEntity)
                 }
             }
 
             _favorites.value = currentFavorites
         }
+    }
+
+    fun onSortArticles(sortAction: SortAction) {
+        _sorted.value = sortAction == SortAction.DATE
     }
 
     // Retrieve the entity from the currently collected paged items

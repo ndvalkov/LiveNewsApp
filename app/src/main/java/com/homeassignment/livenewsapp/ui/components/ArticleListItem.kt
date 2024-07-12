@@ -35,7 +35,7 @@ import com.homeassignment.livenewsapp.data.db.Article
 @Composable
 fun ArticleListItem(article: Article,
                     onItemClick: (Article) -> Unit,
-                    onFavoriteClick: (String) -> Unit,
+                    onFavoriteClick: ((String) -> Unit)? = null,
                     isFavorite: Boolean) {
     Column(
         modifier = Modifier
@@ -84,12 +84,15 @@ fun ArticleListItem(article: Article,
                     color = Color.Gray
                 )
             }
-            IconButton(onClick = { onFavoriteClick(article.title) }) {
-                Icon(
-                    imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.Favorite,
-                    contentDescription = null,
-                    tint = if (isFavorite) Color.Blue else Color.Gray
-                )
+
+            onFavoriteClick?.let {
+                IconButton(onClick = { onFavoriteClick(article.title) }) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.Favorite,
+                        contentDescription = null,
+                        tint = if (isFavorite) Color.Blue else Color.Gray
+                    )
+                }
             }
         }
         Spacer(modifier = Modifier.height(4.dp))

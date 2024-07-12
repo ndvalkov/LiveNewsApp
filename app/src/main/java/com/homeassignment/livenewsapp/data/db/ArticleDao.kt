@@ -20,4 +20,7 @@ interface ArticleDao {
 
     @Query("SELECT * FROM articles")
     fun getPagingSource(): PagingSource<Int, ArticleEntity>
+
+    @Query("SELECT * FROM articles ORDER BY publishedAt DESC")
+    fun getSortedPagingSource(): PagingSource<Int, ArticleEntity>
 }

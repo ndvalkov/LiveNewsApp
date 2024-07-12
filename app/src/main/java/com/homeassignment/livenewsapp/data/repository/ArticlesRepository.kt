@@ -9,6 +9,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+private const val PAGE_SIZE = 30
+
 class ArticlesRepository @Inject constructor(
     private val newsApi: NewsApi,
     private val articleDao: ArticleDao
@@ -26,8 +28,13 @@ class ArticlesRepository @Inject constructor(
     }
 
     fun getAllArticlesFromDb() = Pager(
-        config = PagingConfig(pageSize = 30, enablePlaceholders = false),
+        config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false),
         pagingSourceFactory = { articleDao.getPagingSource() }
+    ).flow
+
+    fun getSortedArticlesFromDb() = Pager(
+        config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false),
+        pagingSourceFactory = { articleDao.getSortedPagingSource() }
     ).flow
 
     suspend fun searchTopHeadlines(keyword: String, apiKey: String): NewsResponseDto? {
